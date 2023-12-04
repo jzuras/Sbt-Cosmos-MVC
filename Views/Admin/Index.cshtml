@@ -1,0 +1,41 @@
+﻿@model IEnumerable<string>
+
+@{
+    ViewData["Title"] = "Admin";
+}
+
+<h1>Admin Functions</h1>
+<h4 id="organizationHeader">Organization: @SetCurrentOrganizationActionFilter.CurrentOrganization</h4>
+<hr />
+
+Organization:
+<select id="selectOrg" onchange="updateLinks()">
+    @foreach (var organization in Model)
+    {
+        if (string.Equals(organization, SetCurrentOrganizationActionFilter.CurrentOrganization))
+        {
+            <option value="@organization" selected="true">@organization</option>
+        }
+        else
+        {
+            <option value="@organization">@organization</option>
+        }
+    }
+</select>
+<p />
+<p>
+    <a id="scheduleLink" href="/Admin/LoadSchedule/@SetCurrentOrganizationActionFilter.CurrentOrganization">Load Schedule File</a>
+</p>
+<p>
+    <a id="divisionLink" href="/Admin/Divisions/@SetCurrentOrganizationActionFilter.CurrentOrganization">Edit Divisions</a>
+</p>
+<p></p>
+
+<script>
+    function updateLinks() {
+        var selectedValue = $('#selectOrg').val();
+        $('#divisionLink').attr('href', '/Admin/Divisions/' + selectedValue);
+        $('#scheduleLink').attr('href', '/Admin/LoadSchedule/' + selectedValue);
+        $('#organizationHeader').text('Organization: ' + selectedValue);
+    }
+</script>
