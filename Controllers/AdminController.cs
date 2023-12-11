@@ -23,13 +23,13 @@ namespace Sbt.Controllers.Admin;
         this._service = service;
     }
 
-    // GET: Index
+    // GET: Admin/{organization?}
     public IActionResult Index(string? organization)
     {
         return View(this.OrganizationList);
     }
 
-    // GET: LoadSchedule
+    // GET: Admin/LoadSchedule/{organization}
     public IActionResult LoadSchedule(string organization)
     {
         LoadScheduleViewModel model = new();
@@ -37,11 +37,12 @@ namespace Sbt.Controllers.Admin;
         return View(model);
     }
 
-    // POST: LoadSchedule
+    // POST: Admin/LoadSchedule/{organization}
     [HttpPost, ActionName("LoadSchedule")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> LoadSchedulePost(string organization, LoadScheduleViewModel model)
     {
+        // note - when loading schedule, team name cannot be a number
 
         // submit button should be disbled if true, but protect against other entries
         if (SetCurrentOrganizationActionFilter.DisableSubmitButton == true)

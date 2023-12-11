@@ -1,15 +1,10 @@
 ﻿@model DivisionListViewModel
 
-@{
-    ViewData["Title"] = "Admin - Divisions";
-}
-
-<h1>Divisions</h1>
-<h4>Organization: @SetCurrentOrganizationActionFilter.CurrentOrganization</h4>
-<hr />
+<vc:Header sub-heading="Admin: Divisions" />
 
 <p>
-    <a asp-action="Create" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Create New Division</a>
+    <a asp-action="Create" title="Create"
+        asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Create New Division</a>
 </p>
 
 <div class="table-responsive">
@@ -54,9 +49,12 @@
                     @Html.DisplayFor(modelItem => item.Locked)
                 </td>
                 <td>
-                        <a asp-action="Edit" asp-route-id="@item.ID" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Edit</a> |
-                        <a asp-action="Details" asp-route-id="@item.ID" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.ID" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Delete</a>
+                        <a asp-action="Edit" asp-route-id="@item.ID" title="Edit"
+                            asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.ID" title="Details"
+                            asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.ID" title="Delete"
+                            asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Delete</a>
                 </td>
             </tr>
     }
@@ -65,5 +63,6 @@
 </div>
 
 <div>
-    <a asp-action="Index" asp-controller="Admin" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to Admin</a>
+    <a asp-action="Index" asp-controller="Admin" title="Back to Admin Page"
+        asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to Admin</a>
 </div>

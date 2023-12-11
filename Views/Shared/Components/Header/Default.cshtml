@@ -1,0 +1,17 @@
+﻿@model Sbt.ViewComponents.HeaderViewComponent.HeaderRecord
+
+@{
+    if (string.IsNullOrEmpty(Model.PartialTitle))
+    {
+        TempData["Title"] = SetCurrentOrganizationActionFilter.CurrentOrganization + ": " + Model.SubHeading;
+    }
+    else
+    {
+        TempData["Title"] = SetCurrentOrganizationActionFilter.CurrentOrganization + ": " + Model.PartialTitle;
+    }
+}
+
+<h1 id="organizationHeader">@Sbt.SetCurrentOrganizationActionFilter.CurrentOrganization</h1>
+<h4>@Model.SubHeading</h4>
+<hr style="border: 2px solid black" />
+<p />

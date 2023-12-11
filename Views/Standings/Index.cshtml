@@ -1,13 +1,8 @@
 ﻿@model StandingsViewModel
 
-@{
-    ViewData["Title"] = SetCurrentOrganizationActionFilter.CurrentOrganization + " Standings";
-}
+<vc:Header sub-heading="Standings & Schedule" partial-title="Standings: @(Model.DivisionInfo.ID)" />
 
-<h1>@SetCurrentOrganizationActionFilter.CurrentOrganization - Standings & Schedule</h1>
-
-<p />
-<hr />
+<link rel="stylesheet" href="~/css/standings.css" asp-append-version="true" />
 <div class="table-responsive">
     <h4>Standings:</h4>
     <div style="text-align:left;">
@@ -78,88 +73,9 @@
 </div>
 
 <hr />
-<div class="table-responsive">
-    <h4 style="display: flex">
-        Schedule: &nbsp;
-        <select asp-for="TeamName" id="teamNameSelect">
-            <option value="">All Teams</option>
-            @foreach (var standing in Model.Standings)
-            {
-                <option value="@standing.Name">@standing.Name</option>
-            }
-        </select>
-    </h4>
-    Click on Team Name to Report Scores
-    <table class="table schedule-table">
-        <thead>
-            <tr>
-                <th>Visitor</th>
-                <th>Score</th>
-                <th>Home</th>
-                <th>Score</th>
-                <th>Date</th>
-                <th>Field</th>
-                <th>Time</th>
-                <th colspan="3">Rescheduled</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var game in Model.Schedule)
-            {
-                <tr>
-                    @if (game.Visitor.ToUpper().StartsWith("WEEK"))
-                    {
-                        <td style="color:red; text-decoration:underline; font-weight:bold">@game.Visitor.ToUpper()</td>
-                    }
-                    else
-                    {
-                        <td>
-                            <a href="@(Url.Action("Index", "Scores", new { organization = @SetCurrentOrganizationActionFilter.CurrentOrganization, id = @Model.DivisionInfo.ID, gameID = @game.GameID}))">
-                                @game.Visitor
-                            </a>
-                        </td>
-                    }
-                    <td>@game.VisitorScore</td>
-                    <td>
-                        <a href="@(Url.Action("Index", "Scores", new { organization = @SetCurrentOrganizationActionFilter.CurrentOrganization, id = @Model.DivisionInfo.ID, gameID = @game.GameID}))">
-                            @game.Home
-                        </a>
-                    </td>
-                    <td>@game.HomeScore</td>
-                    <td>@game.Day?.ToString("MMM-dd")</td>
-                    <td>@game.Field</td>
-                    <td>@game.Time?.ToString("h:mm tt")</td>
 
-                    @if (!string.IsNullOrEmpty(game.MakeupField))
-                    {
-                        <td>@game.MakeupDay?.ToString("MMM-dd")</td>
-                        <td>@game.MakeupField</td>
-                        <td>@game.MakeupTime?.ToString("h:mm tt")</td>
-                    }
-                    else
-                    {
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    }
-                </tr>
-            }
-        </tbody>
-    </table>
+<div class="table-responsive" id="scheduleContainer">
+    @{
+        await Html.RenderPartialAsync("_SchedulePartial", Model);
+    }
 </div>
-
-@section Scripts {
-    <script>
-        document.getElementById("teamNameSelect").addEventListener("change", function () {
-            var selectedTeam = this.value;
-
-            if (selectedTeam == "") {
-                var url = '@Url.Action("Index", "Standings", new { organization = SetCurrentOrganizationActionFilter.CurrentOrganization, id = Model.DivisionInfo.ID })';
-                window.location.href = url;
-            } else {
-                var url = '@Url.Action("Index", "Standings", new { organization = SetCurrentOrganizationActionFilter.CurrentOrganization, id = Model.DivisionInfo.ID })?teamName=' + encodeURIComponent(selectedTeam);
-                window.location.href = url;
-            }
-        });
-    </script>
-}

@@ -1,12 +1,6 @@
 ﻿@model IEnumerable<string>
 
-@{
-    ViewData["Title"] = "Admin";
-}
-
-<h1>Admin Functions</h1>
-<h4 id="organizationHeader">Organization: @SetCurrentOrganizationActionFilter.CurrentOrganization</h4>
-<hr />
+<vc:Header sub-heading="Admin Functions" />
 
 Organization:
 <select id="selectOrg" onchange="updateLinks()">
@@ -24,10 +18,12 @@ Organization:
 </select>
 <p />
 <p>
-    <a id="scheduleLink" href="/Admin/LoadSchedule/@SetCurrentOrganizationActionFilter.CurrentOrganization">Load Schedule File</a>
+    <a id="scheduleLink" title="Load Schedule for a Division"
+        href="/Admin/LoadSchedule/@SetCurrentOrganizationActionFilter.CurrentOrganization">Load Schedule File</a>
 </p>
 <p>
-    <a id="divisionLink" href="/Admin/Divisions/@SetCurrentOrganizationActionFilter.CurrentOrganization">Edit Divisions</a>
+    <a id="divisionLink" title="List of Divisions"
+        href="/Admin/Divisions/@SetCurrentOrganizationActionFilter.CurrentOrganization">Edit Divisions</a>
 </p>
 <p></p>
 
@@ -36,6 +32,6 @@ Organization:
         var selectedValue = $('#selectOrg').val();
         $('#divisionLink').attr('href', '/Admin/Divisions/' + selectedValue);
         $('#scheduleLink').attr('href', '/Admin/LoadSchedule/' + selectedValue);
-        $('#organizationHeader').text('Organization: ' + selectedValue);
+        $('#organizationHeader').text(selectedValue);
     }
 </script>

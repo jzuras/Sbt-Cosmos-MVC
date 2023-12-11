@@ -1,13 +1,7 @@
 ﻿@model DivisionInfo
 
-@{
-    ViewData["Title"] = "Admin - Create Division";
-}
+<vc:Header sub-heading="Admin: Create Division" />
 
-<h1>Create Division</h1>
-
-<h4>Organization: @Html.Raw(SetCurrentOrganizationActionFilter.CurrentOrganization)</h4>
-<hr />
 <form method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <div class="form-group row mb-3">
@@ -31,7 +25,8 @@
 </form>
 
 <div>
-    <a asp-action="Index" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to List</a>
+    <a asp-action="Index" title="List of Divisions"
+        asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to List</a>
 </div>
 
 @section Scripts {

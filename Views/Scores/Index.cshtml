@@ -1,16 +1,10 @@
 ﻿@model ScoresViewModel
 
-@{
-    ViewData["Title"] = SetCurrentOrganizationActionFilter.CurrentOrganization + " Report Scores";
-}
-
-<h1>@SetCurrentOrganizationActionFilter.CurrentOrganization - Report Scores</h1>
-
+<vc:Header sub-heading="Report Scores" partial-title="Report Scores: @(Model.ID)" />
 
 <p />
 <input type="hidden" asp-for="@SetCurrentOrganizationActionFilter.CurrentOrganization" />
 <input type="hidden" asp-for="ID" />
-<hr />
 <div>
     <dl class="row">
         <dt class="col-sm-2">

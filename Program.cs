@@ -91,14 +91,14 @@ namespace Sbt
                 defaults: new { controller = "StandingsList", action = "Index" });
 
             app.MapControllerRoute(
-                name: "Standings",
-                pattern: "{organization}/{id}",
-                defaults: new { controller = "Standings", action = "Index" });
+                name: "Scores",
+                pattern: "{organization}/{id}/{gameID:int}",
+                defaults: new { controller = "Scores", action = "Index" });
 
             app.MapControllerRoute(
-                name: "Scores",
-                pattern: "{organization}/{id}/{gameID}",
-                defaults: new { controller = "Scores", action = "Index" });
+                name: "Standings",
+                pattern: "{organization}/{id}/{teamName?}",
+                defaults: new { controller = "Standings", action = "Index" });
 
             app.MapControllerRoute(
                 name: "custom",

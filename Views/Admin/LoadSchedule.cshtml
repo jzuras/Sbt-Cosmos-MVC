@@ -1,12 +1,6 @@
 ﻿@model LoadScheduleViewModel
 
-@{
-    ViewData["Title"] = "Admin - Load Schedule";
-}
-
-<h1>Load Schedule</h1>
-<h4>Organization: @SetCurrentOrganizationActionFilter.CurrentOrganization</h4>
-<hr />
+<vc:Header sub-heading="Admin: Load Schedule" />
 
 <h5>Choose Division and File </h5>
 <p />
@@ -33,7 +27,8 @@
 }
 
 <div>
-    <a asp-action="Index" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to Admin</a>
+    <a asp-action="Index" title="Back to Admin Page"
+    asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to Admin</a>
 </div>
 
 @section Scripts {

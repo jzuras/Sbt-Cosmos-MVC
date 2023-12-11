@@ -1,13 +1,7 @@
 ﻿@model DivisionInfo
 
-@{
-    ViewData["Title"] = "Admin - Division Details";
-}
+<vc:Header sub-heading="Admin: Division Details" />
 
-<h1>Division Details</h1>
-
-<h4>Organization: @SetCurrentOrganizationActionFilter.CurrentOrganization</h4>
-<hr />
 <div>
     <dl class="row">
         <dt class="col-sm-2">
@@ -43,6 +37,8 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.ID" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Edit</a> |
-    <a asp-action="Index" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.ID" title="Edit This Division"
+        asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Edit</a> |
+    <a asp-action="Index" title="List of Divisions"
+        asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to List</a>
 </div>

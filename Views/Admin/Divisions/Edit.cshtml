@@ -1,13 +1,7 @@
 ﻿@model DivisionInfo
 
-@{
-    ViewData["Title"] = "Admin - Edit Division";
-}
+<vc:Header sub-heading="Admin: Edit Division" />
 
-<h1>Edit Division</h1>
-
-<h4>Organization: @SetCurrentOrganizationActionFilter.CurrentOrganization</h4>
-<hr />
 <form method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="ID" />
@@ -36,7 +30,8 @@
 </form>
 
 <div>
-    <a asp-action="Index" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to List</a>
+    <a asp-action="Index" title="List of Divisions"
+        asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to List</a>
 </div>
 
 @section Scripts {

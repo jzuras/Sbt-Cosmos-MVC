@@ -7,7 +7,7 @@ public class SetCurrentOrganizationActionFilter : IActionFilter
     // for now, this is a quick way to disable Admin Functions on Azure
     // (Global variables are a horrible idea - this needs to be a
     // Feature on Azure which can be turned on or off remotely.)
-    public static bool DisableSubmitButton = false;
+    public static bool DisableSubmitButton = true;
 
     // Each View references this to set a header.
     public static string CurrentOrganization = "Demo Softball";
