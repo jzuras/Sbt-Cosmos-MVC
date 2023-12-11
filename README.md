@@ -10,4 +10,4 @@ I ran into an issue attempting to create a new Cosmos DB Container for this proj
 
 As with the others, this version is running on Azure, and can be found [here](https://sbt-cosmos-mvc.azurewebsites.net/).
 
-The LinkedIn discussion post is [coming soon]().
+The LinkedIn discussion post is [https://www.linkedin.com/feed/update/urn:li:share:7137479278622912514/]().
