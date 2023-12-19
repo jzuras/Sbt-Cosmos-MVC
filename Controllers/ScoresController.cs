@@ -49,7 +49,7 @@ public class ScoresController : Controller
     // POST: Scores/{organization}/{abbreviation}?gameID
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: true)]
+    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: false)]
     public async Task<IActionResult> Index(ScoresViewModel model, string organization, string abbreviation)
     {
         // check for consistency errors within model
