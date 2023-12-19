@@ -4,7 +4,7 @@
     Schedule: &nbsp;
     <select asp-for="TeamName" id="teamNameSelect">
         <option value="">All Teams</option>
-        @foreach (var standing in Model.Standings)
+        @foreach (var standing in Model.Division.Standings)
         {
             <option value="@standing.Name">@standing.Name</option>
         }
@@ -25,7 +25,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var game in Model.Schedule)
+        @foreach (var game in Model.Division.Schedule)
         {
             <tr>
                 @if (game.Visitor.ToUpper().StartsWith("WEEK"))
@@ -35,14 +35,14 @@
                 else
                 {
                     <td>
-                        <a href="@(Url.Action("Index", "Scores", new { organization = @SetCurrentOrganizationActionFilter.CurrentOrganization, id = @Model.DivisionInfo.ID, gameID = @game.GameID}))" title="Report Score">
+                        <a href="@(Url.Action("Index", "Scores", new { organization = Model.Division.Organization, abbreviation = Model.Division.Abbreviation, gameID = @game.GameID}))" title="Report Score">
                             @game.Visitor
                         </a>
                     </td>
                 }
                 <td>@game.VisitorScore</td>
                 <td>
-                    <a href="@(Url.Action("Index", "Scores", new { organization = @SetCurrentOrganizationActionFilter.CurrentOrganization, id = @Model.DivisionInfo.ID, gameID = @game.GameID}))" title="Report Score">
+                    <a href="@(Url.Action("Index", "Scores", new { organization = Model.Division.Organization, abbreviation = Model.Division.Abbreviation, gameID = @game.GameID}))" title="Report Score">
                         @game.Home
                     </a>
                 </td>
@@ -76,8 +76,8 @@
         // Make an AJAX request to get the updated schedule
         $.get('@Url.Action("Index", "Standings")',
             {
-                organization: '@SetCurrentOrganizationActionFilter.CurrentOrganization',
-                id: '@Model.DivisionInfo.ID',
+                organization: '@Model.Division.Organization',
+                id: '@Model.Division.Abbreviation',
                 teamName: selectedTeam
             }, function (data) {
 

@@ -1,35 +1,35 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Sbt.Models.ViewModels;
+using Sbt.Models.Requests;
 using Sbt.Services;
 
 namespace Sbt.Controllers;
 
 public class StandingsListController : Controller
 {
-    private readonly DivisionService _service;
-
-    private DivisionService Service => _service;
+    private readonly DivisionService Service;
 
     public StandingsListController(DivisionService service)
     {
-        _service = service;
+        this.Service = service;
     }
 
     // GET: StandingsList/{organization}
+    [ParametersNotNullActionFilter(checkAbbreviation: false, checkDisableSubmitButton: false)]
     public async Task<IActionResult> Index(string organization)
     {
-        if (string.IsNullOrEmpty(organization) || this.Service == null)
+        var request = new GetDivisionListRequest
+        {
+            Organization = organization,
+        };
+
+        var response = await this.Service.GetDivisionList(request);
+
+        if (response.Success == false || response.DivisionList == null)
         {
             return NotFound();
         }
 
-        var divisionsList = await Service.GetDivisionList(organization);
-
-        DivisionListViewModel model = new();
-        //model.Organization = organization;
-        model.DivisionsList = divisionsList;
-
-        return View(model);
+        return View(response.DivisionList);
     }
 
 }

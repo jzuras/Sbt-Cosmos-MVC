@@ -2,7 +2,7 @@
 
 public class DivisionListViewModel
 {
-    public List<DivisionInfo> DivisionsList { get; set; } = default!;
+    public string Organization { get; set; } = string.Empty;
 
-    public DivisionInfo DivisionInfo { get; set; } = default!;
+    public IList<Division> DivisionsList { get; set; } = default!;
 }

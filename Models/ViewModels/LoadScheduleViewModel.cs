@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -6,11 +7,14 @@ namespace Sbt.Models.ViewModels;
 
 public class LoadScheduleViewModel
 {
+    public string Organization { get; set; } = string.Empty;
 
     [Required]
     [RegularExpression(@"^[a-zA-Z]+[a-zA-Z0-9-_]*$", ErrorMessage = "Allowed: digits, letters, dash, and underline.")]
     [StringLength(50, MinimumLength = 2)]
-    public string DivisionID { get; set; } = string.Empty;
+    [Remote("DivisionExists", "Admin", ErrorMessage = "Division not found.", 
+        AdditionalFields = nameof(Organization))]
+    public string Abbreviation { get; set; } = string.Empty;
 
     [Required]
     [DisplayName("Schedule File")]

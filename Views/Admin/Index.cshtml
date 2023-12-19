@@ -1,12 +1,12 @@
-﻿@model IEnumerable<string>
+﻿@model (string Organization, List<string> OrganizationList)
 
 <vc:Header sub-heading="Admin Functions" />
 
 Organization:
 <select id="selectOrg" onchange="updateLinks()">
-    @foreach (var organization in Model)
+    @foreach (var organization in Model.OrganizationList)
     {
-        if (string.Equals(organization, SetCurrentOrganizationActionFilter.CurrentOrganization))
+        if (string.Equals(organization, Model.Organization))
         {
             <option value="@organization" selected="true">@organization</option>
         }
@@ -19,19 +19,17 @@ Organization:
 <p />
 <p>
     <a id="scheduleLink" title="Load Schedule for a Division"
-        href="/Admin/LoadSchedule/@SetCurrentOrganizationActionFilter.CurrentOrganization">Load Schedule File</a>
+        href="/Admin/LoadSchedule/@Model.Organization">Load Schedule File</a>
 </p>
 <p>
     <a id="divisionLink" title="List of Divisions"
-        href="/Admin/Divisions/@SetCurrentOrganizationActionFilter.CurrentOrganization">Edit Divisions</a>
+        href="/Admin/Divisions/@Model.Organization">Edit Divisions</a>
 </p>
 <p></p>
 
 <script>
     function updateLinks() {
         var selectedValue = $('#selectOrg').val();
-        $('#divisionLink').attr('href', '/Admin/Divisions/' + selectedValue);
-        $('#scheduleLink').attr('href', '/Admin/LoadSchedule/' + selectedValue);
-        $('#organizationHeader').text(selectedValue);
+        window.location.href = "/Admin/" + selectedValue;
     }
 </script>

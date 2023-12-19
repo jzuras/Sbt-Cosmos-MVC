@@ -1,9 +1,14 @@
-﻿<!DOCTYPE html>
+﻿@using Sbt
+@{
+    var CurrentOrganization = TempData.CurrentOrganization();
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@TempData["Title"] - SoftballTech</title>
+    <title>@TempData.Title() - SoftballTech</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Sbt-Cosmos-MVC.styles.css" asp-append-version="true" />
@@ -31,7 +36,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="StandingsList" asp-action="Index" asp-route-organization="Demo Hockey">Demo Hockey</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index" asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Admin</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index" asp-route-organization="@CurrentOrganization">Admin</a>
                         </li>
                     </ul>
                 </div>
@@ -50,7 +55,7 @@
                 &copy; @DateTime.Now.Year - SoftballTech
             </div>
             <div class="grid-item version-container">
-                <span class="version">Version 0.3</span>
+                <span class="version">Version 0.5</span>
             </div>
         </div>
     </footer>

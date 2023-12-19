@@ -1,14 +1,14 @@
 ﻿@model StandingsViewModel
 
-<vc:Header sub-heading="Standings & Schedule" partial-title="Standings: @(Model.DivisionInfo.ID)" />
+<vc:Header sub-heading="Standings & Schedule" partial-title="Standings: @(Model.Division.Abbreviation)" />
 
 <link rel="stylesheet" href="~/css/standings.css" asp-append-version="true" />
 <div class="table-responsive">
     <h4>Standings:</h4>
     <div style="text-align:left;">
-        <span style="float:left;">League: &emsp;<b>@Model.DivisionInfo.League</b></span>
-        <span style="float:right;" id="spanUpdated">Updated: &emsp;<b>@Model.DivisionInfo.Updated.ToString("MM/dd/yyyy h:mm tt")</b></span>
-        <span style="display:block; text-align:center;">Division: &emsp;<b>@Model.DivisionInfo.NameOrNumber</b></span>
+        <span style="float:left;">League: &emsp;<b>@Model.Division.League</b></span>
+        <span style="float:right;" id="spanUpdated">Updated: &emsp;<b>@Model.Division.Updated.ToString("MM/dd/yyyy h:mm tt")</b></span>
+        <span style="display:block; text-align:center;">Division: &emsp;<b>@Model.Division.NameOrNumber</b></span>
     </div>
     <p />
     <table class="table standings-table">
@@ -30,7 +30,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.Standings)
+            @foreach (var item in Model.Division.Standings)
             {
                 <tr>
                     <td>

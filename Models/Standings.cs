@@ -1,7 +1,4 @@
 ﻿
-// Razor does not play well with nullable reference types,
-// but this line will still allow for null derefernce warnings
-#nullable disable annotations
 
 // Standings table handles the cumulative records for the teams.
 
@@ -11,7 +8,7 @@ public class Standings
 {
     public short TeamID { get; set; }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     public short Wins { get; set; }
 

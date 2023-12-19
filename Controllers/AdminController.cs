@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Sbt.Models.Requests;
 using Sbt.Models.ViewModels;
 using Sbt.Services;
 
@@ -6,9 +7,7 @@ namespace Sbt.Controllers.Admin;
 
  public class AdminController : Controller
 {
-    private readonly DivisionService _service;
-
-    private DivisionService Service => _service;
+    private readonly DivisionService Service;
     
     public List<string> OrganizationList;
 
@@ -20,58 +19,79 @@ namespace Sbt.Controllers.Admin;
         this.OrganizationList =
             configuration.GetSection("Organizations")?.Get<List<string>>() ?? new List<string>();
 
-        this._service = service;
+        this.Service = service;
+    }
+
+    [AcceptVerbs("Get", "Post")]
+    [Route("/Admin/DivisionExists")]
+    public async Task<IActionResult> DivisionExists(string organization, string abbreviation)
+    {
+        // this action method handles the Remote attribute on an Abbreviation input,
+        // and will return false if the division can be found, true if not.
+
+        var request = new DivisionExistsRequest
+        {
+            Organization = organization,
+            Abbreviation = abbreviation,
+        };
+
+        var response = await this.Service.DivisionExists(request);
+
+        // if the division is found, a schedule can then be loaded for it.
+        bool divisionFound = response.Success;
+
+        return Json(divisionFound);
     }
 
     // GET: Admin/{organization?}
     public IActionResult Index(string? organization)
     {
-        return View(this.OrganizationList);
+        var model = (organization, this.OrganizationList);
+        return View(model);
     }
 
     // GET: Admin/LoadSchedule/{organization}
+    [ParametersNotNullActionFilter(checkAbbreviation: false, checkDisableSubmitButton: false)]
     public IActionResult LoadSchedule(string organization)
     {
         LoadScheduleViewModel model = new();
+
+        model.Organization = organization;
 
         return View(model);
     }
 
     // POST: Admin/LoadSchedule/{organization}
+    [ParametersNotNullActionFilter(checkAbbreviation: false, checkDisableSubmitButton: true)]
     [HttpPost, ActionName("LoadSchedule")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> LoadSchedulePost(string organization, LoadScheduleViewModel model)
     {
-        // note - when loading schedule, team name cannot be a number
-
-        // submit button should be disbled if true, but protect against other entries
-        if (SetCurrentOrganizationActionFilter.DisableSubmitButton == true)
+        var request = new LoadScheduleRequest
         {
-            return View(model);
-        }
+            Organization = organization,
+            Abbreviation = model.Abbreviation,
+            ScheduleFile = model.ScheduleFile,
+            UsesDoubleHeaders = model.UsesDoubleHeaders,
+        };
 
-        if (organization == null || model.ScheduleFile == null || model.ScheduleFile.Length == 0)
-        {
-            return View(model);
-        }
+        var response = await this.Service.LoadScheduleFileAsync(request);
 
-        var loadResult = await this.Service
-            .LoadScheduleFileAsync(model.ScheduleFile, organization, model.DivisionID, model.UsesDoubleHeaders);
-
-        if (loadResult.Success)
+        if (response.Success)
         {
             model.ResultMessage = DateTime.Now.ToShortTimeString() + ": Success loading schedule from " +
                 model.ScheduleFile.FileName + ". <br>Games start on " +
-                loadResult.FirstGameDate.ToShortDateString() +
+                response.FirstGameDate.ToShortDateString() +
                 " and end on " +
-                loadResult.LastGameDate.ToShortDateString();
+                response.LastGameDate.ToShortDateString();
         }
         else
         {
-            model.ResultMessage = loadResult.ErrorMessage;
+            model.ResultMessage = DateTime.Now.ToShortTimeString() + ": Failure loading schedule from " +
+                model.ScheduleFile.FileName + ". <br>Error message: " + response.Message;
         }
 
-        model.ResultSuccess = loadResult.Success;
+        model.ResultSuccess = response.Success;
 
         return View(model);
     }

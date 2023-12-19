@@ -5,11 +5,12 @@
 <h5>Choose Division and File </h5>
 <p />
 <form method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Organization" />
     <div asp-validation-summary="ModelOnly" class="text-danger"></div><div></div><div></div>
     <div class="grid-container-load-schedule">
-        <label asp-for="DivisionID" class="" aria-label="Division ID">Division ID</label>
-        <input asp-for="DivisionID" class="" aria-required="true" />
-        <span asp-validation-for="DivisionID" class="text-danger"></span>
+        <label asp-for="Abbreviation" class="" aria-label="Division Abbreviation">Div Abbreviation</label>
+        <input asp-for="Abbreviation" class="" aria-required="true" />
+        <span asp-validation-for="Abbreviation" class="text-danger"></span>
         <label asp-for="UsesDoubleHeaders" class="l" aria-label="Uses DoubleHeaders">Uses Double-headers</label>
         <input class="form-check-input" asp-for="UsesDoubleHeaders" class="" />
         <span asp-validation-for="UsesDoubleHeaders" class="text-danger"></span>
@@ -28,7 +29,7 @@
 
 <div>
     <a asp-action="Index" title="Back to Admin Page"
-    asp-route-organization="@SetCurrentOrganizationActionFilter.CurrentOrganization">Back to Admin</a>
+    asp-route-organization="@Model.Organization">Back to Admin</a>
 </div>
 
 @section Scripts {

@@ -1,17 +1,17 @@
 ﻿@model ScoresViewModel
 
-<vc:Header sub-heading="Report Scores" partial-title="Report Scores: @(Model.ID)" />
+<vc:Header sub-heading="Report Scores" partial-title="Report Scores: @(Model.Abbreviation)" />
 
 <p />
-<input type="hidden" asp-for="@SetCurrentOrganizationActionFilter.CurrentOrganization" />
-<input type="hidden" asp-for="ID" />
+<input type="hidden" asp-for="Organization" />
+<input type="hidden" asp-for="Abbreviation" />
 <div>
     <dl class="row">
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ID)
+            Division
         </dt>
         <dd class="col-sm-10" id="divisionID">
-            @Html.DisplayFor(model => model.ID)
+            @Html.DisplayFor(model => model.Abbreviation)
         </dd>
     </dl>
     <dl class="row">

@@ -16,7 +16,6 @@ namespace Sbt
             builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
             builder.Services.AddScoped<IDivisionRepository, DivisionEfCoreRepository>();
             builder.Services.AddScoped<DivisionService>();
-            builder.Services.AddControllersWithViews();
 
             string connectionString = builder.Configuration.GetConnectionString("Cosmos_ConnectionString")
                 ?? throw new InvalidOperationException("Connection string not found in configuration.");
@@ -65,6 +64,9 @@ namespace Sbt
 
             app.UseAuthorization();
 
+            // Note - there are explicitly-defined routes on action methods in
+            // both the Admin and Divisions controllers, used to process
+            // the Remote attribute on model properties.
             app.MapControllerRoute(
                 name: "AdminLoadSchedule",
                 pattern: "Admin/LoadSchedule/{organization}",
@@ -77,7 +79,7 @@ namespace Sbt
 
             app.MapControllerRoute(
                 name: "AdminDivisionsAction",
-                pattern: "Admin/Divisions/{action}/{organization}/{id?}",
+                pattern: "Admin/Divisions/{action}/{organization}/{abbreviation?}",
                 defaults: new { controller = "Divisions" });
 
             app.MapControllerRoute(
@@ -92,17 +94,17 @@ namespace Sbt
 
             app.MapControllerRoute(
                 name: "Scores",
-                pattern: "{organization}/{id}/{gameID:int}",
+                pattern: "{organization}/{abbreviation}/{gameID:int}",
                 defaults: new { controller = "Scores", action = "Index" });
 
             app.MapControllerRoute(
                 name: "Standings",
-                pattern: "{organization}/{id}/{teamName?}",
+                pattern: "{organization}/{abbreviation}/{teamName?}",
                 defaults: new { controller = "Standings", action = "Index" });
 
             app.MapControllerRoute(
                 name: "custom",
-                pattern: "{controller}/{action}/{organization?}/{id?}",
+                pattern: "{controller}/{action}/{organization?}/{abbreviation?}",
                 defaults: new { controller = "Home", action = "Index" });
 
             app.Run();

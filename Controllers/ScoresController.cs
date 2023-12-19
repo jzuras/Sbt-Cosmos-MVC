@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Sbt.Models.Requests;
 using Sbt.Models.ViewModels;
 using Sbt.Services;
 
@@ -6,64 +7,72 @@ namespace Sbt.Controllers;
 
 public class ScoresController : Controller
 {
-    private readonly DivisionService _service;
-
-    private DivisionService Service => _service;
+    private readonly DivisionService Service;
 
     public ScoresController(DivisionService service)
     {
-        _service = service;
+        this.Service = service;
     }
 
-    // GET: Scores/{organization}/{id}{gameID}
-    public async Task<IActionResult> Index(string organization, string id, int gameID)
+    // GET: Scores/{organization}/{abbreviation}{gameID}
+    [ParametersNotNullActionFilter(checkAbbreviation: false, checkDisableSubmitButton: false)]
+    public async Task<IActionResult> Index(string organization, string abbreviation, int gameID)
     {
-        if (string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(id) || this.Service == null)
+        try
+        {
+            var request = new GetScoresRequest
+            {
+                Organization = organization,
+                Abbreviation = abbreviation,
+                GameID = gameID
+            };
+
+            var response = await this.Service.GetGames(request);
+
+            if(response.Success == false || response.Games == null)
+            {
+                return NotFound();
+            }
+
+            var games = response.Games;
+
+            ScoresViewModel model = new(games, organization, abbreviation);
+
+            return View(model);
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        var gameInfo = await this.Service.GetGames(organization, id, gameID);
-
-        if (gameInfo == null)
-        {
-            return NotFound();
-        }
-
-        ScoresViewModel model = new();
-
-        model.ID = id;
-        model.Schedule = gameInfo;
-
-        // populate ViewModel
-        model.ScheduleVM = new List<Sbt.Models.ScheduleVM>();
-        for (int i = 0; i < model.Schedule.Count; i++)
-        {
-            var scheduleVM = new Sbt.Models.ScheduleVM();
-            scheduleVM.GameID = model.Schedule[i].GameID;
-            scheduleVM.HomeScore = model.Schedule[i].HomeScore;
-            scheduleVM.VisitorScore = model.Schedule[i].VisitorScore;
-            scheduleVM.HomeForfeit = model.Schedule[i].HomeForfeit;
-            scheduleVM.VisitorForfeit = model.Schedule[i].VisitorForfeit;
-            model.ScheduleVM.Add(scheduleVM);
-        }
-
-        return View(model);
     }
 
-    // POST: Scores/{organization}/{id}?gameID
+    // POST: Scores/{organization}/{abbreviation}?gameID
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Index(ScoresViewModel viewModel, string organization, string id)
+    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: true)]
+    public async Task<IActionResult> Index(ScoresViewModel model, string organization, string abbreviation)
     {
-        if (!ModelState.IsValid || this.Service == null || 
-            string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(id))
+        // check for consistency errors within model
+        if (!model.IsValid(out string errorMessage))
         {
-                return NotFound();
+            ModelState.AddModelError(string.Empty, errorMessage);
         }
 
-        await this.Service.SaveScores(organization, id, viewModel.ScheduleVM );
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
 
-        return RedirectToAction(nameof(Index), "Standings", new { organization = organization, id = id });
+        // converting to a Request Object prevents overposting
+        var request = model.ToScoresRequest();
+        var response = await this.Service.SaveScores(request);
+
+        if (!response.Success)
+        {
+            ModelState.AddModelError("", response.Message ?? "Unknown error.");
+            return View(model);
+        }
+
+        return RedirectToAction(nameof(Index), "Standings", new { organization = organization, abbreviation = abbreviation });
     }
 }

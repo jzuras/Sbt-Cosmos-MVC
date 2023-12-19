@@ -1,63 +1,71 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Sbt.Models;
+using Sbt.Models.Requests;
 using Sbt.Models.ViewModels;
 using Sbt.Services;
-using Sbt.Shared.Exceptions;
 
 namespace Sbt.Controllers;
 
 public class DivisionsController : Controller
 {
-    private readonly DivisionService _service;
-
-    private DivisionService Service => _service;
+    private readonly DivisionService Service;
 
     public DivisionsController(DivisionService service)
     {
-        _service = service;
+        this.Service = service;
     }
 
     #region Get Action Methods
     // GET: Divisions/Create/{organization}
+    [ParametersNotNullActionFilter(checkAbbreviation: false, checkDisableSubmitButton: false)]
     public IActionResult Create(string organization)
     {
-        if (string.IsNullOrEmpty(organization) || this.Service == null)
-        {
-            return NotFound();
-        }
+        var model = new Division { Organization = organization };
 
-        return View();
+        return View(model);
     }
 
-    // GET: Divisions/Delete/{organization}/{id}
-    public async Task<IActionResult> Delete(string organization, string id)
+    // GET: Divisions/Delete/{organization}/{abbreviation}
+    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: false)]
+    public async Task<IActionResult> Delete(string organization, string abbreviation)
     {
-        return await this.PopulateModel(organization, id);
+        return await this.PopulateModel(organization, abbreviation);
     }
 
-    // GET: Divisions/Details/{organization}/{id}
-    public async Task<IActionResult> Details(string organization, string id)
+    // GET: Divisions/Details/{organization}/{abbreviation}
+    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: false)]
+    public async Task<IActionResult> Details(string organization, string abbreviation)
     {
-        return await this.PopulateModel(organization, id);
+        return await this.PopulateModel(organization, abbreviation);
     }
 
-    // GET: Divisions/Edit/{organization}/{id}
-    public async Task<IActionResult> Edit(string organization, string id)
+    // GET: Divisions/Edit/{organization}/{abbreviation}
+    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: false)]
+    public async Task<IActionResult> Edit(string organization, string abbreviation)
     {
-        return await this.PopulateModel(organization, id);
+        return await this.PopulateModel(organization, abbreviation);
     }
 
     // GET: Divisions/{organization}
+    [ParametersNotNullActionFilter(checkAbbreviation: false, checkDisableSubmitButton: false)]
     public async Task<IActionResult> Index(string organization)
     {
-        if (string.IsNullOrEmpty(organization) || this.Service == null)
+        var request = new GetDivisionListRequest
+        {
+            Organization = organization,
+        };
+
+        var response = await this.Service.GetDivisionList(request);
+
+        if (response.Success == false || response.DivisionList == null)
         {
             return NotFound();
         }
 
-        var divisionsList = await Service.GetDivisionList(organization);
+        var divisionsList = response.DivisionList;
 
         DivisionListViewModel model = new();
+        model.Organization = organization;
         model.DivisionsList = divisionsList;
 
         return View(model);
@@ -65,35 +73,53 @@ public class DivisionsController : Controller
     #endregion
 
     #region Post Action Method
+    [AcceptVerbs("Get", "Post")]
+    [Route("/Divisions/IsDivisionAbbreviationAvailable")]
+    public async Task<IActionResult> IsDivisionAbbreviationAvailable(string organization, string abbreviation)
+    {
+        // this action method handles the Remote attribute on an Abbreviation input,
+        // and will return false if the abbreviation is already in use, true if not.
+
+        var request = new DivisionExistsRequest
+        {
+            Organization = organization,
+            Abbreviation = abbreviation,
+        };
+
+        var response = await this.Service.DivisionExists(request);
+
+        // Remote attribute displays error message message if we return false,
+        // so we need to reverse the result from DivisionExists().
+        bool abbreviationIsAvailable = (response.Success == false);
+
+        return Json(abbreviationIsAvailable);
+    }
+
     // POST: Divisions/Create/{organization}
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("ID,League,NameOrNumber")] DivisionInfo model, 
-        string organization)
+    [ParametersNotNullActionFilter(checkAbbreviation: false, checkDisableSubmitButton: true)]
+    public async Task<IActionResult> Create(Division model, string organization)
     {
-        // submit button should be disbled if true, but protect against other entries
-        if (SetCurrentOrganizationActionFilter.DisableSubmitButton == true)
-        {
-            return View(model);
-        }
-
-        if (string.IsNullOrEmpty(organization) || this.Service == null)
-        {
-            return NotFound();
-        }
-
         if (ModelState.IsValid)
         {
             try
             {
-                model.Organization = organization;
-                model.ID = model.ID;
-                await this.Service.CreateDivisionInfo(model);
-            }
-            catch (DivisionExistsException)
-            {
-                ModelState.AddModelError(string.Empty, "This Division ID already exists.");
-                return View(model);
+                var request = new CreateDivisionRequest
+                {
+                    Organization = model.Organization,
+                    Abbreviation = model.Abbreviation,
+                    League = model.League,
+                    NameOrNumber = model.NameOrNumber,
+                };
+
+                var response = await this.Service.CreateDivision(request);
+
+                if (response.Success == false)
+                {
+                    ModelState.AddModelError(string.Empty, response.Message);
+                    return View(model);
+                }
             }
             catch (Exception)
             {
@@ -103,28 +129,37 @@ public class DivisionsController : Controller
         return RedirectToAction(nameof(Index), new { organization = organization });
     }
 
-    // POST: Divisions/Edit/{organization}/{id}
+    // POST: Divisions/Edit/{organization}/{abbreviation}
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit([Bind("ID,League,NameOrNumber,Locked")] DivisionInfo model,
-        string organization, string id)
+    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: true)]
+    public async Task<IActionResult> Edit(Division model, string organization, string abbreviation)
     {
-        // submit button should be disbled if true, but protect against other entries
-        if (SetCurrentOrganizationActionFilter.DisableSubmitButton == true)
-        {
-            return NotFound();
-        }
-
-        if (string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(id) || this.Service == null)
-        {
-            return NotFound();
-        }
-
         if (ModelState.IsValid)
         {
-            model.Organization = organization;
-            model.ID = id;
-            await this.Service.SaveDivisionInfo(model);
+            try
+            {
+                var request = new UpdateDivisionRequest
+                {
+                    Organization = model.Organization,
+                    Abbreviation = model.Abbreviation,
+                    League = model.League,
+                    NameOrNumber = model.NameOrNumber,
+                    Locked = model.Locked,
+                };
+
+                var response = await this.Service.UpdateDivision(request);
+
+                if (response.Success == false)
+                {
+                    ModelState.AddModelError(string.Empty, response.Message);
+                    return View(model);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         return RedirectToAction(nameof(Index), new { organization = organization });
@@ -133,29 +168,26 @@ public class DivisionsController : Controller
     // POST: Divisions/Delete/{organization}/{id}
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(string organization, string id)
+    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: true)]
+    public async Task<IActionResult> DeleteConfirmed(Division model, string organization, string abbreviation)
     {
-        // submit button should be disbled if true, but protect against other entries
-        if (SetCurrentOrganizationActionFilter.DisableSubmitButton == true)
-        {
-            return NotFound();
-        }
-
-        if (string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(id) || this.Service == null)
-        {
-            return NotFound();
-        }
-
         try
         {
-            await this.Service.DeleteDivision(organization, id);
+            var request = new DeleteDivisionRequest
+            {
+                Organization = model.Organization,
+                Abbreviation = model.Abbreviation,
+            };
+
+            var response = await this.Service.DeleteDivision(request);
+
+            if (response.Success == false)
+            {
+                ModelState.AddModelError(string.Empty, response.Message);
+                return View(model);
+            }
 
             return RedirectToAction(nameof(Index), new { organization = organization });
-        }
-        catch (DivisionNotFoundException)
-        {
-            // deleting a division that does not exist shouldn't happen
-            return NotFound();
         }
         catch (Exception)
         {
@@ -169,23 +201,26 @@ public class DivisionsController : Controller
     /// Common code used by Delete/Details/Edit Action Methods
     /// </summary>
     /// <param name="organization">Organization to search for.</param>
-    /// <param name="id">ID of Division to search for.</param>
+    /// <param name="abbreviation">ID of Division to search for.</param>
     /// <returns>View(model) if found, NotFound() otherwise.</returns>
-    private async Task<IActionResult> PopulateModel(string organization, string id)
+    private async Task<IActionResult> PopulateModel(string organization, string abbreviation)
     {
-        if (string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(id) || this.Service == null)
+        var request = new GetDivisionRequest
         {
-            return NotFound();
-        }
+            Organization = organization,
+            Abbreviation = abbreviation,
+        };
 
-        var divisionInfo = await Service.GetDivisionInfoIfExists(organization, id);
+        var response = await this.Service.GetDivision(request);
 
-        if (divisionInfo == null)
+        var division = response.Division;
+
+        if (division == null)
         {
             return NotFound();
         }
         
-        return View(divisionInfo);
+        return View(division);
     }
     #endregion
 }

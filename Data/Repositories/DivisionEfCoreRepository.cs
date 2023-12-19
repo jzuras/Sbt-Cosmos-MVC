@@ -1,5 +1,7 @@
-﻿using Sbt.Models;
-using Sbt.Shared;
+﻿using Microsoft.Azure.Cosmos;
+using Microsoft.EntityFrameworkCore;
+using Sbt.Models;
+using System.Net;
 
 namespace Sbt.Data.Repositories;
 
@@ -14,40 +16,127 @@ public class DivisionEfCoreRepository : IDivisionRepository
         this._dbContext = context;
     }
 
-    public async Task<Division> GetDivision(string organization, string divisionID)
+    public async Task<bool> DivisionExists(string organization, string abbreviation)
     {
-        return await this.DbContext.GetDivision(organization, divisionID);
+        var division = await this.GetDivision(organization, abbreviation);
+
+        return (division != null);
     }
 
-    public async Task<List<DivisionInfo>> GetDivisionList(string organization)
+    public async Task<Division> GetDivision(string organization, string abbreviation)
     {
-        return await this.DbContext.GetDivisionList(organization);
+        try
+        {
+            var division = await this.DbContext.Divisions
+                .WithPartitionKey(organization)
+                .Where(d => d.Organization.ToLower() == organization.ToLower()
+                    && d.Abbreviation.ToLower() == abbreviation.ToLower())
+                .FirstOrDefaultAsync();
+
+            return division!;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
-    public async Task<DivisionInfo?> GetDivisionInfoIfExists(string organization, string divisionID)
+    public async Task<List<Division>> GetDivisionList(string organization)
     {
-        return await this.DbContext.GetDivisionInfoIfExists(organization, divisionID);
+        try
+        {
+            var division = await this.DbContext.Divisions
+                .WithPartitionKey(organization)
+                .Where(d => d.Organization.ToLower() == organization.ToLower()).ToListAsync();
+
+            if (division != null)
+                return division;
+            else
+                return new List<Division>();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            // No divisions - return empty list
+            return new List<Division>();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
-    public async Task<List<Schedule>> GetGames(string organization, string divisionID, int gameID)
+    public async Task<List<Schedule>> GetGames(string organization, string abbreviation, int gameID)
     {
-        return await this.DbContext.GetGames(organization, divisionID, gameID);
+        var list = new List<Schedule>();
+
+        try
+        {
+            // Step 1: do a query returning 1 game result based on the game id
+            // Step 2: do a second query using that game's day and field
+            //var schedule = await this.Divisions
+            //    .Where(d => d.Organization == organization && d.ID == divisionID.ToLower())
+            //    .SelectMany(d => d.Schedule)
+            //    .Where(s => s.GameID == gameID)
+            //    .FirstOrDefaultAsync();
+
+            // ef core could not handle the query above (threw exception about inability to translate)
+            // so now we just get the entire division and query the schedule list directly
+
+            var division = await this.GetDivision(organization, abbreviation);
+
+            var games = division.Schedule
+                .Where(s => s.GameID == gameID)
+                .SelectMany(s => division.Schedule.Where(inner => inner.Day == s.Day && inner.Field == s.Field))
+                .ToList();
+
+            if (games != null)
+            {
+                foreach (var game in games)
+                {
+                    list.Add(game);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+
+        return list;
     }
 
-    public async Task<LoadScheduleResult> LoadScheduleFileAsync(IFormFile scheduleFile, string organization, string divisionID,
-    bool usesDoubleHeaders)
+    /// <summary>
+    /// Handles creating, deleting, and updating divisions. 
+    /// Calling method is expected to enforce requirements such as 
+    /// not creating a divsiion that already exists, if so desired.
+    /// </summary>
+    /// <param name="division">Division object which is being tracked, except for creating.</param>
+    /// <param name="deleteDivision">True to delete this division, false otherwise.</param>
+    /// <param name="createDivision">True to create this division, false otherwise.</param>
+    public async Task SaveDivision(Division division,
+                                   bool deleteDivision = false, bool createDivision = false)
     {
-        return await this.DbContext.LoadScheduleFileAsync(scheduleFile, organization, divisionID, usesDoubleHeaders);
-    }
+        try
+        {
+            if (deleteDivision)
+            {
+                this.DbContext.Divisions.Remove(division);
+            }
+            else if (createDivision)
+            {
+                this.DbContext.Divisions.Add(division);
+            }
+            else
+            {
+                this.DbContext.Update(division);
+            }
 
-    public async Task SaveDivisionInfo(DivisionInfo divisionInfo,
-        bool deleteDivision = false, bool createDivision = false)
-    {
-        await this.DbContext.SaveDivisionInfo(divisionInfo, deleteDivision, createDivision);
-    }
-
-    public async Task SaveScores(string organization, string divisionID, IList<ScheduleVM> schedules)
-    {
-        await this.DbContext.SaveScores(organization, divisionID, schedules);
+            await this.DbContext.SaveChangesAsync();
+            return;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 }

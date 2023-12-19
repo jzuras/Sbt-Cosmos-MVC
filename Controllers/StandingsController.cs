@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using Sbt.Models;
+using Sbt.Models.Requests;
 using Sbt.Models.ViewModels;
 using Sbt.Services;
 
@@ -8,70 +8,63 @@ namespace Sbt.Controllers;
 
 public class StandingsController : Controller
 {
-    private readonly DivisionService _service;
-
-    private DivisionService Service => _service;
+    private readonly DivisionService Service;
 
     public StandingsController(DivisionService service)
     {
-        _service = service;
+        this.Service = service;
     }
 
-    // GET: Standings/{organization}/{id}/{teamName?}
+    // GET: Standings/{organization}/{abbreviation}/{teamName?}
     // This method also handles partial rendering for AJAX
-    public async Task<IActionResult> Index(string organization, string id, string? teamName)
+    [ParametersNotNullActionFilter(checkAbbreviation: true, checkDisableSubmitButton: false)]
+    public async Task<IActionResult> Index(string organization, string abbreviation, string? teamName)
     {
-        if (string.IsNullOrEmpty(organization) || string.IsNullOrEmpty(id) || this.Service == null)
+        var request = new GetDivisionRequest
+        {
+            Organization = organization,
+            Abbreviation = abbreviation,
+        };
+
+        var response = await this.Service.GetDivision(request);
+
+        if (response.Success == false || response.Division == null)
         {
             return NotFound();
         }
 
-        var divisionInfo = await Service.GetDivisionInfoIfExists(organization, id);
-        if (divisionInfo == null)
-        {
-            return NotFound();
-        }
-
-        var division = await Service.GetDivision(organization, id);
+        var division = response.Division;
 
         StandingsViewModel model = new();
         if (division == null || division.Organization == string.Empty)
         {
-            model.DivisionInfo = divisionInfo;
-
-            model.Schedule = new List<Schedule>();
-            model.Standings = new List<Standings>();
+            // render empty schedule and standings
+            model.Division.Schedule = new List<Schedule>();
+            model.Division.Standings = new List<Standings>();
             model.ShowOvertimeLosses = organization.ToLower().Contains("hockey");
 
             return View(model);
         }
 
-        model.DivisionInfo = divisionInfo;
-
-        model.Schedule = division.Schedule.ToList();
-        model.Standings = division.Standings.ToList();
+        model.Division = division;
+        model.Division.Standings = model.Division.Standings
+            .OrderBy(s => s.GB).ThenByDescending(s => s.Percentage).ToList();
 
         if (!string.IsNullOrEmpty(teamName))
         {
-            bool teamExists = model.Standings.Any(standing => standing.Name == teamName);
+            bool teamExists = model.Division.Standings.Any(standing => standing.Name.ToLower() == teamName.ToLower());
             if (teamExists)
             {
                 model.TeamName = teamName;
-                model.Schedule = model.Schedule
+                model.Division.Schedule = model.Division.Schedule
                     .Where<Schedule>(s => s.Home.ToLower() == teamName.ToLower() ||
                                      s.Visitor.ToLower() == teamName.ToLower()).ToList();
             }
         }
 
-        model.Standings = model.Standings
-            .OrderBy(s => s.GB).ThenByDescending(s => s.Percentage)
-            .ToList();
-
-        // in a production system this would be handled more generically,
-        // but for now we are just checking if Org contains "Hockey"
         model.ShowOvertimeLosses = division.Organization.ToLower().Contains("hockey");
 
-        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        if (base.Request.Headers.XRequestedWith == "XMLHttpRequest")
         {
             // The "_SchedulePartial" view inlcudes only the schedule portion
             // but we still need to call PartialView to avoid rendering _Layout.cshtml
