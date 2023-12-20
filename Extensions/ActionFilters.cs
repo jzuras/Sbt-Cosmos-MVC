@@ -12,7 +12,6 @@ public class ParametersNotNullActionFilter : Attribute, IActionFilter
     {
         this.CheckDisableSubmitButton = checkDisableSubmitButton;
         this.CheckAbbreviation = checkAbbreviation;
-        Console.WriteLine("att filter created");
     }
 
     /// <summary>
