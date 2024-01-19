@@ -1,6 +1,6 @@
-# SoftballTech-Cosmos-EF (Razor)
+# SoftballTech-Cosmos (MVC version)
 
-This is a learning project for myself, and it is not expected to be useful to the world at large. However, my LI post discusses some speed bumps that I encountered that might be interesting for others just learning about Cosmos. 
+This is a learning project for myself, and it is not expected to be useful to the world at large. However, my LI post discusses some speed bumps that I encountered that might be interesting for others just learning about Cosmos or MVC. 
 
 For this project, I modified my previous Cosmos EF Core project to move from Razor Pages to MVC. (Please see the ReadMe in the original repo for more info about the website itself.)
 
